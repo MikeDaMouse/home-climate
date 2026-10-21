@@ -1,0 +1,227 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#eef2f1" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#0b1110" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="Climate">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230f766e'/%3E%3Cpath d='M16 6c4 5 7 9 7 13a7 7 0 0 1-14 0c0-4 3-8 7-13z' fill='white'/%3E%3C/svg%3E">
+<title>Home Climate</title>
+<style>
+:root{--bg:#eef2f1;--card:#fff;--ink:#14231f;--muted:#64776f;--line:#dde6e2;--accent:#0f766e;--accent-soft:#d5efe9;--warn:#b91c1c;
+--rh:#0f766e;--temp:#c2410c;--dew:#6d28d9;--dry:#b45309;--dry-soft:#fdeccf;--shadow:0 1px 2px rgba(16,40,34,.05),0 10px 30px rgba(16,40,34,.06);--blur:rgba(238,242,241,.82)}
+@media(prefers-color-scheme:dark){:root{--bg:#0b1110;--card:#141c1a;--ink:#e6efec;--muted:#8fa39c;--line:#24302d;--accent:#2dd4bf;--accent-soft:#123630;--warn:#f87171;
+--rh:#2dd4bf;--temp:#fb923c;--dew:#a78bfa;--dry:#f5b041;--dry-soft:#3a2a10;--shadow:none;--blur:rgba(11,17,16,.82)}}
+*{box-sizing:border-box}html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",system-ui,sans-serif;padding:0 16px calc(28px + env(safe-area-inset-bottom))}
+.top{position:sticky;top:0;z-index:5;margin:0 -16px;padding:calc(10px + env(safe-area-inset-top)) 16px 10px;background:var(--blur);-webkit-backdrop-filter:saturate(1.6) blur(16px);backdrop-filter:saturate(1.6) blur(16px)}
+.top>div{max-width:980px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:10px}
+h1{font-size:20px;margin:0;letter-spacing:-.015em}h2{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0 0 12px;font-weight:650}
+main{max-width:980px;margin:6px auto 0;display:grid;gap:14px;grid-template-columns:repeat(12,1fr)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:18px;box-shadow:var(--shadow);min-width:0}
+.s12{grid-column:1/-1}.s7{grid-column:span 7}.s5{grid-column:span 5}.s6{grid-column:span 6}
+@media(max-width:760px){main{gap:12px}.s7,.s5,.s6{grid-column:1/-1}#accard{order:1}#autocard{order:2}.chartcard{order:3}#feedcard{order:4}.later{order:5}footer{order:6}.card{padding:16px;border-radius:18px}}
+.pill{display:inline-flex;align-items:center;gap:7px;padding:6px 11px;border-radius:99px;background:var(--card);border:1px solid var(--line);font-size:12.5px;font-weight:650;white-space:nowrap}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--muted)}.ok .dot{background:#16a34a}.busy .dot{background:var(--dry)}.bad .dot{background:var(--warn)}
+.sub{color:var(--muted);font-size:13px}.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.between{justify-content:space-between}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.hero{display:grid;grid-template-columns:1.2fr 1fr;gap:18px;align-items:center}
+@media(max-width:560px){.hero{grid-template-columns:1fr}}
+.rhbig{font-size:64px;font-weight:720;letter-spacing:-.04em;line-height:.95;font-variant-numeric:tabular-nums}.rhbig small{font-size:24px;font-weight:600;color:var(--muted);margin-left:2px;letter-spacing:0}
+.comfort{display:inline-flex;align-items:center;gap:6px;margin-top:10px;padding:5px 10px;border-radius:99px;font-size:13px;font-weight:650;background:var(--accent-soft);color:var(--accent)}
+.comfort.humid{background:var(--dry-soft);color:var(--dry)}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat{background:var(--bg);border-radius:14px;padding:11px 10px}.stat b{display:block;font-size:22px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums}.stat span{font-size:11.5px;color:var(--muted);font-weight:600}
+.gauge{position:relative;height:10px;border-radius:9px;margin:18px 0 6px;background:linear-gradient(90deg,#60a5fa 0%,#34d399 30%,#a3e635 52%,#fbbf24 70%,#f97316 100%)}
+.gauge i{position:absolute;top:50%;width:18px;height:18px;border-radius:50%;background:var(--card);border:3px solid var(--ink);transform:translate(-50%,-50%);transition:left .5s}
+.gauge b{position:absolute;top:-5px;width:2px;height:20px;background:var(--ink);opacity:.3;border-radius:2px}
+.scale{display:flex;justify-content:space-between;font-size:11px;color:var(--muted)}
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;background:var(--bg);border-radius:13px;padding:4px;gap:4px}
+.seg button{padding:10px 4px;min-height:40px;border-radius:10px;font-weight:650;font-size:13.5px;color:var(--muted);transition:background .15s,color .15s}
+.seg button.on{background:var(--card);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.14)}
+.tog{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.tog button{padding:12px 4px;min-height:46px;border-radius:13px;border:1px solid var(--line);font-weight:650;font-size:13px;color:var(--muted)}
+.tog button.on{background:var(--accent-soft);color:var(--accent);border-color:transparent}
+.thermo{display:flex;align-items:center;justify-content:center;gap:26px;margin:8px 0 18px}
+.round{width:58px;height:58px;border-radius:50%;border:1px solid var(--line);font-size:28px;display:grid;place-items:center;background:var(--card)}
+button:active{transform:scale(.96)}
+.setpoint{text-align:center;min-width:120px}.setpoint .v{font-size:72px;font-weight:720;letter-spacing:-.045em;line-height:1;font-variant-numeric:tabular-nums}.setpoint .v small{font-size:30px;color:var(--muted);font-weight:500;vertical-align:top;line-height:1.4}
+.power{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;border:1px solid var(--line);color:var(--muted)}
+.power.on{background:var(--accent);color:#fff;border-color:transparent;box-shadow:0 6px 16px rgba(15,118,110,.35)}
+.acoff .thermo,.acoff .seg,.acoff .tog,.acoff .label{opacity:.35}
+.label{font-size:12px;color:var(--muted);margin:16px 0 7px;font-weight:650}
+.note{margin-top:16px;padding:11px 13px;border-radius:13px;background:var(--bg);font-size:13px;color:var(--muted)}
+.switch{position:relative;width:52px;height:32px;border-radius:99px;background:var(--line);transition:background .2s;flex:none}
+.switch:after{content:"";position:absolute;top:3px;left:3px;width:26px;height:26px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:transform .2s}
+.switch.on{background:var(--accent)}.switch.on:after{transform:translateX(20px)}
+.status{display:flex;gap:10px;align-items:flex-start;margin:14px 0 4px;padding:12px;border-radius:13px;background:var(--bg);font-size:14px}
+.status .ico{font-size:18px;line-height:1.2}
+details{margin-top:12px}summary{cursor:pointer;font-weight:650;font-size:14px;color:var(--accent);list-style:none;padding:6px 0}summary::-webkit-details-marker{display:none}
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}.fields label{font-size:12px;color:var(--muted);font-weight:650}
+input{font:inherit;font-size:16px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:11px;padding:10px;width:100%;margin-top:4px}
+.btn{padding:12px 16px;border-radius:13px;font-weight:650;background:var(--accent);color:#fff;min-height:44px}.btn.ghost{background:var(--bg);color:var(--ink)}
+canvas{width:100%;height:0;min-height:200px;flex:1 1 200px;display:block;touch-action:pan-y}.chartcard{display:flex;flex-direction:column}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-top:8px}.legend span:before{content:"";display:inline-block;width:10px;height:3px;border-radius:2px;margin-right:5px;vertical-align:middle;background:var(--c)}
+.tabs{display:flex;gap:2px;background:var(--bg);border-radius:10px;padding:3px}.tabs button{font-size:12px;font-weight:650;color:var(--muted);padding:5px 10px;border-radius:8px}.tabs button.on{background:var(--card);color:var(--ink)}
+#tip{font-size:12.5px;color:var(--muted);min-height:18px;margin-top:4px;font-variant-numeric:tabular-nums}
+.feed{list-style:none;margin:0;padding:0;max-height:340px;overflow:auto}.feed li{display:grid;grid-template-columns:28px 1fr auto;gap:10px;align-items:center;padding:10px 0;border-top:1px solid var(--line);font-size:14px}
+.feed li:first-child{border-top:0}.feed .t{color:var(--muted);font-size:12px;white-space:nowrap}.feed .i{width:28px;height:28px;border-radius:9px;display:grid;place-items:center;font-size:14px;background:var(--bg)}
+.sensor{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-top:1px solid var(--line);gap:8px}.sensor:first-child{border-top:0}
+.kv{display:flex;justify-content:space-between;gap:10px;padding:5px 0;font-size:13.5px;color:var(--muted)}.kv b{color:var(--ink);font-weight:600;text-align:right;overflow-wrap:anywhere}
+#toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));transform:translate(-50%,30px);opacity:0;background:var(--ink);color:var(--bg);padding:11px 18px;border-radius:14px;font-weight:650;font-size:14px;transition:.25s;pointer-events:none;max-width:90vw;z-index:9}
+#toast.show{opacity:1;transform:translate(-50%,0)}#toast.err{background:var(--warn);color:#fff}
+#login{position:fixed;inset:0;z-index:20;background:var(--bg);display:none;place-items:center;padding:20px}
+#login .card{width:100%;max-width:380px}#login label{display:block;font-size:12px;color:var(--muted);font-weight:650;margin-top:10px}
+.remoteonly{display:none}body.remote .remoteonly{display:block}body.remote .localonly{display:none}
+footer{grid-column:1/-1;text-align:center;color:var(--muted);font-size:12px;margin:6px 0}
+</style></head><body>
+<div class="top"><div><div><h1>Home Climate</h1><div class="sub" id="hdrsub">Connecting…</div></div>
+<span class="pill" id="autopill"><span class="dot"></span><span>—</span></span></div></div>
+<main>
+<section class="card s12"><div class="hero"><div>
+<h2>Humidity</h2><div class="rhbig" id="rh">—<small>%</small></div><div class="comfort" id="comfort">—</div></div>
+<div><div class="stats"><div class="stat"><span>Temp</span><b id="temp">—</b></div><div class="stat"><span>Dew point</span><b id="dew">—</b></div><div class="stat"><span>Battery</span><b id="bat">—</b></div></div>
+<div class="gauge"><b id="gstop"></b><b id="gstart"></b><i id="gdot" style="left:0"></i></div><div class="scale"><span>Dry 50°</span><span>Comfortable</span><span>Muggy 68°</span></div></div></div></section>
+
+<section class="card s5" id="accard"><div class="row between"><h2 style="margin:0">Air conditioner</h2>
+<button class="power" id="power" aria-label="Power"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 3v8"/><path d="M6.3 7.2a8 8 0 1 0 11.4 0"/></svg></button></div>
+<div class="thermo"><button class="round" id="minus" aria-label="Lower">−</button>
+<div class="setpoint"><div class="v" id="setp">—</div><div class="sub" id="setnote">set point</div></div>
+<button class="round" id="plus" aria-label="Raise">+</button></div>
+<div class="seg" id="mode"><button data-v="3">Cool</button><button data-v="2">Dry</button><button data-v="8">Fan</button><button data-v="7">Auto</button><button data-v="1">Heat</button></div>
+<div class="label">Fan</div>
+<div class="seg" id="fan"><button data-v="0">Auto</button><button data-v="1">Quiet</button><button data-v="2">Low</button><button data-v="3">Med</button><button data-v="5">High</button></div>
+<div class="label">Features</div>
+<div class="tog"><button id="swingv">Swing ↕</button><button id="swingh">Swing ↔</button><button id="turbo">Turbo</button><button id="light">Display</button></div>
+<div class="note" id="acsource">Waiting for the first remote signal or command.</div></section>
+
+<section class="card s7" id="autocard"><div class="row between"><h2 style="margin:0">Smart dry</h2><button class="switch" id="autosw" aria-label="Automation"></button></div>
+<div class="seg" id="presence" style="margin-top:14px"><button data-v="0">🏠 Home</button><button data-v="1">🚶 Away</button></div>
+<div class="status"><span class="ico" id="autoico">⏸</span><div><b id="autoreason">—</b><div class="sub" id="autoplan"></div></div></div>
+<details id="tune"><summary>Adjust targets</summary>
+<div class="fields"><label>Home: dry above dew point °F<input id="s_dew_high" type="number" step="0.5" inputmode="decimal"></label>
+<label>Stop when dew point ≤ °F<input id="s_dew_low" type="number" step="0.5" inputmode="decimal"></label>
+<label>Home Cool set point °F<input id="s_cool_f" type="number" inputmode="numeric"></label>
+<label>Never cool room below °F<input id="s_floor_f" type="number" inputmode="numeric"></label>
+<label>Away: dry above dew point °F<input id="s_away_dew_high" type="number" step="0.5" inputmode="decimal"></label>
+<label>Away Cool set point °F<input id="s_away_cool_f" type="number" inputmode="numeric"></label>
+<label>Max drying, minutes<input id="s_max_dry_minutes" type="number" inputmode="numeric"></label></div>
+<p class="sub">Dew point is the moisture actually in the air — unlike %RH it doesn't change as the room cools. Under 55°F feels crisp, 55–60°F comfortable, over 62°F sticky and mold-friendly.</p>
+<button class="btn" id="savebtn">Save targets</button></details></section>
+
+<section class="card s7 chartcard"><div class="row between" style="margin-bottom:10px"><h2 style="margin:0">Last <span id="rangelbl">24 hours</span></h2>
+<div class="tabs" id="range"><button data-h="3">3h</button><button data-h="12">12h</button><button data-h="24" class="on">24h</button></div></div>
+<canvas id="chart"></canvas><div id="tip"></div>
+<div class="legend"><span style="--c:var(--rh)">Humidity %</span><span style="--c:var(--dew)">Dew point °F</span><span style="--c:var(--temp)">Temp °F</span><span style="--c:var(--dry-soft)">Drying</span></div></section>
+
+<section class="card s5" id="feedcard"><h2>Activity</h2><ul class="feed" id="feed"></ul></section>
+<section class="card s6 later"><h2>Sensors nearby</h2><div id="sensors" class="sub">Scanning…</div></section>
+<section class="card s6 later"><h2>Device</h2><div id="device"></div></section>
+<section class="card s12 later localonly" id="remotecard"><div class="row between"><h2 style="margin:0">Access from anywhere</h2><span class="pill" id="relaypill"><span class="dot"></span><span>—</span></span></div>
+<p class="sub">The Atom keeps a private, encrypted link to your EMQX relay so your phone can reach it away from home. Enter the relay login made for the Atom (e.g. user “atom”). Passwords stay on the Atom.</p>
+<div class="fields"><label>Relay address<input id="r_host" placeholder="xxxx.emqxsl.com" autocapitalize="off" autocorrect="off"></label>
+<label>Username<input id="r_user" autocapitalize="off" autocorrect="off"></label>
+<label>Password<input id="r_pass" type="password" autocomplete="new-password"></label></div>
+<div class="row" style="margin-top:12px"><button class="btn" id="r_save">Save relay login</button></div>
+<details><summary>Change this page's password</summary><div class="fields"><label>New password (8+ characters)<input id="p_new" type="password" autocomplete="new-password"></label></div>
+<button class="btn ghost" id="p_save" style="margin-top:10px">Change password</button></details></section>
+<footer>The Atom listens too: anything sent from the original remote shows up here.</footer>
+</main><div id="toast"></div>
+<div id="login"><div class="card"><h1 style="margin-bottom:6px">Home Climate</h1><p class="sub">Sign in to your relay to control the AC from anywhere. Use the “phone” login you created in EMQX. It's saved only on this device.</p>
+<label>Relay address<input id="l_host" placeholder="xxxx.emqxsl.com" autocapitalize="off" autocorrect="off"></label>
+<label>Username<input id="l_user" autocapitalize="off" autocorrect="off" autocomplete="username"></label>
+<label>Password<input id="l_pass" type="password" autocomplete="current-password"></label>
+<button class="btn" id="l_go" style="width:100%;margin-top:16px">Connect</button><p class="sub" id="l_msg"></p></div></div>
+<script>
+const $=id=>document.getElementById(id);const MODES={1:'Heat',2:'Dry',3:'Cool',7:'Auto',8:'Fan'};const FANS={0:'Auto',1:'Quiet',2:'Low',3:'Medium',5:'High'};
+const FIELDS=['dew_high','dew_low','cool_f','floor_f','away_dew_high','away_cool_f','max_dry_minutes'];
+let S=null,H=null,hours=24,lock=0,pendingTemp=null,tempTimer=null,dirty=false;
+// Served by the Atom over http at home; opened over https from anywhere else, via the MQTT relay.
+const REMOTE=location.protocol==='https:'||location.search.includes('remote');if(REMOTE)document.body.classList.add('remote');
+let mq=null,pendingReplies={},atomOnline=true;
+function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,v)}catch(e){}}
+function normalize(s){if(!s||!s.now)return s;const lag=Math.max(0,Date.now()/1000-s.now);if(s.room.age>=0)s.room.age+=lag;if(s.ac.age>=0)s.ac.age+=lag;for(const e of s.activity)e.age+=lag;for(const x of s.sensors)x.age+=lag;return s}
+function remoteConnect(){const host=ls('hc_host'),user=ls('hc_user'),pass=ls('hc_pass');if(!host||!user||!pass){$('login').style.display='grid';return}
+$('hdrsub').textContent='Connecting to relay…';const go=()=>{mq=mqtt.connect('wss://'+host+':8084/mqtt',{username:user,password:pass,clientId:'phone-'+Math.random().toString(16).slice(2,10),reconnectPeriod:4000,connectTimeout:10000,clean:true});
+mq.on('connect',()=>{$('login').style.display='none';mq.subscribe(['home-climate/state','home-climate/history','home-climate/result','home-climate/online']);hello()});
+mq.on('error',e=>{if(/auth|Not authorized|Bad user/i.test(e.message)){mq.end(true);ls('hc_pass',null);$('login').style.display='grid';$('l_msg').textContent='Login rejected — check the username and password.'}});
+mq.on('offline',()=>$('hdrsub').textContent='Offline — retrying…');
+mq.on('message',(t,m)=>{const txt=m.toString();if(t.endsWith('/online')){atomOnline=txt==='1';if(S)render();return}let j;try{j=JSON.parse(txt)}catch(e){return}
+if(t.endsWith('/state')){S=normalize(j);render()}else if(t.endsWith('/history')){H=j;draw()}else if(t.endsWith('/result')&&pendingReplies[j.id]){pendingReplies[j.id](j);delete pendingReplies[j.id]}})};
+if(window.mqtt)go();else{const sc=document.createElement('script');sc.src='https://unpkg.com/mqtt@5.10.1/dist/mqtt.min.js';sc.onload=go;sc.onerror=()=>toast('Could not load the relay library',true);document.head.append(sc)}}
+function hello(){if(mq&&mq.connected&&!document.hidden)mq.publish('home-climate/hello','1')}
+$('l_go').onclick=()=>{ls('hc_host',$('l_host').value.trim().replace(/^\w+:\/\//,'').replace(/[:\/].*$/,''));ls('hc_user',$('l_user').value.trim());ls('hc_pass',$('l_pass').value);$('l_msg').textContent='';if(mq)mq.end(true);remoteConnect()};
+$('l_host').value=ls('hc_host')||'';$('l_user').value=ls('hc_user')||'';
+function toast(t,err){const e=$('toast');e.textContent=t;e.className='show'+(err?' err':'');clearTimeout(e._t);e._t=setTimeout(()=>e.className='',2600)}
+async function post(path,body){if(REMOTE){if(!mq||!mq.connected){toast('Not connected',true);return false}
+const id=Math.random().toString(36).slice(2),msg={id,op:path.split('/').pop()};for(const k in body)msg[k]=String(body[k]);
+const res=await new Promise(ok=>{pendingReplies[id]=ok;mq.publish('home-climate/cmd',JSON.stringify(msg),{qos:1});setTimeout(()=>{if(pendingReplies[id]){delete pendingReplies[id];ok({code:0,text:'No answer from the Atom'})}},9000)});
+if(res.code!==200){toast(res.text||'Failed',true);return false}if(res.text)toast(res.text);return true}try{const r=await fetch(path,{method:'POST',headers:{'X-AC':'1','Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams(body)});const t=await r.text();if(!r.ok){toast(t||'Failed',true);return false}if(t)toast(t);return true}catch(e){toast('Atom unreachable',true);return false}}
+function ago(s){if(s<0||s==null)return'';if(s<45)return'just now';if(s<3600)return Math.round(s/60)+' min ago';if(s<86400)return Math.round(s/3600)+' h ago';return Math.round(s/86400)+' d ago'}
+function dur(s){return s<3600?Math.round(s/60)+' min':s<86400?Math.round(s/3600)+' h':Math.round(s/86400)+' d'}
+function clock(s){return new Date(Date.now()-s*1000).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'})}
+function dewF(t,rh){if(t==null||rh==null||rh<=0)return null;const c=(t-32)/1.8,g=Math.log(rh/100)+17.62*c/(243.12+c);return 243.12*g/(17.62-g)*1.8+32}
+function feel(d){return d<50?['Dry air','']:d<55?['Crisp & dry','']:d<60?['Comfortable','']:d<63?['A bit sticky','humid']:d<66?['Humid','humid']:['Muggy','humid']}
+function setSeg(id,v){for(const b of $(id).children)b.classList.toggle('on',+b.dataset.v===v)}
+async function ac(change){lock=Date.now()+2500;Object.assign(S.ac,change);renderAc();await post('/api/ac',change);refresh()}
+$('power').onclick=()=>ac({power:S.ac.power?0:1});
+for(const id of ['mode','fan'])$(id).onclick=e=>{const v=e.target.closest('button')?.dataset.v;if(v!=null)ac({[id]:+v})};
+for(const id of ['swingv','swingh','turbo','light'])$(id).onclick=()=>ac({[id]:S.ac[id]?0:1});
+function bump(d){if(!S)return;const base=pendingTemp??S.ac.temp??77;pendingTemp=Math.min(86,Math.max(61,base+d));lock=Date.now()+3000;$('setp').innerHTML=pendingTemp+'<small>°</small>';
+clearTimeout(tempTimer);tempTimer=setTimeout(()=>{const t=pendingTemp;pendingTemp=null;ac({temp:t})},700)}
+$('plus').onclick=()=>bump(1);$('minus').onclick=()=>bump(-1);
+$('autosw').onclick=async()=>{await post('/api/automation',{action:S.automation.enabled?'pause':'enable'});refresh()};
+$('presence').onclick=async e=>{const v=e.target.closest('button')?.dataset.v;if(v==null)return;setSeg('presence',+v);await post('/api/away',{away:v});refresh()};
+for(const f of FIELDS)$('s_'+f).oninput=()=>dirty=true;
+$('savebtn').onclick=async()=>{const b={};for(const f of FIELDS)b[f]=$('s_'+f).value;if(await post('/api/settings',b)){dirty=false;$('tune').open=false}refresh()};
+function renderAc(){const a=S.ac;$('accard').classList.toggle('acoff',!a.power);$('power').classList.toggle('on',!!a.power);
+if(pendingTemp==null)$('setp').innerHTML=a.temp&&a.mode!=2?a.temp+'<small>°</small>':a.mode==2?'Dry':'—';
+$('setnote').textContent=a.mode==2?'AC holds about 74°F':a.turbo?'Turbo':'set point';
+setSeg('mode',a.mode);setSeg('fan',a.fan);for(const id of ['swingv','swingh','turbo','light'])$(id).classList.toggle('on',!!a[id]);
+const who={remote:'📡 From the original remote',automation:'🤖 Set by Smart dry',web:'📱 Sent from this dashboard',saved:'💾 Last known state'}[a.source]||'';
+$('acsource').textContent=a.known?who+' · '+ago(a.age)+' — '+(a.power?MODES[a.mode]+(a.temp&&a.mode!=2?' '+a.temp+'°F':'')+', fan '+(FANS[a.fan]||a.fan):'Off'):'State unknown until the remote is used or a command is sent.'}
+function render(){const r=S.room,au=S.automation;
+$('hdrsub').textContent=REMOTE&&!atomOnline?'Atom is offline — last known state':(REMOTE?'Remote · ':'')+(r.fresh?'Updated '+ago(r.age):'Waiting for the Govee sensor…');
+if(!REMOTE&&S.remote){const rp=$('relaypill');rp.className='pill '+(S.remote.connected?'ok':S.remote.configured?'bad':'');rp.lastElementChild.textContent=S.remote.connected?'Connected':S.remote.configured?(S.remote.error||'Connecting…'):'Off';if(!$('r_host').value&&document.activeElement!==$('r_host'))$('r_host').value=S.remote.host||'';if(!$('r_user').value&&document.activeElement!==$('r_user'))$('r_user').value=S.remote.user||''}
+$('rh').innerHTML=r.fresh?r.rh.toFixed(0)+'<small>%</small>':'—<small>%</small>';$('temp').textContent=r.fresh?r.t.toFixed(1)+'°':'—';
+$('dew').textContent=r.fresh&&r.dew!=null?r.dew.toFixed(1)+'°':'—';$('bat').textContent=r.battery>=0?r.battery+'%':'—';
+const pos=d=>Math.min(100,Math.max(0,(d-50)/18*100))+'%';$('gstart').style.left=pos(au.start_dew);$('gstop').style.left=pos(au.stop_dew);
+if(r.fresh&&r.dew!=null){const[f,c]=feel(r.dew);$('comfort').textContent=f;$('comfort').className='comfort '+c;$('gdot').style.left=pos(r.dew)}else{$('comfort').textContent=r.mac?'Waiting for reading':'Pick a sensor below';$('comfort').className='comfort'}
+const p=$('autopill');p.className='pill '+(au.drying?'busy':au.enabled?'ok':'bad');p.lastElementChild.textContent=au.drying?'Drying':au.enabled?(au.away?'Away':'Smart dry on'):'Paused';
+$('autosw').classList.toggle('on',au.enabled);setSeg('presence',au.away?1:0);
+$('autoico').textContent=!au.enabled?'⏸':au.drying?'💧':'✅';$('autoreason').textContent=au.enabled?au.reason:'Smart dry is off';
+$('autoplan').textContent=(au.away?'Away':'Home')+': Cool at '+(au.away?au.away_cool_f:au.cool_f)+'°F. Dry when dew point passes '+au.start_dew+'°F, stop at '+au.stop_dew+'°F, never below '+au.floor+'°F room temperature.';
+if(!dirty)for(const f of FIELDS)$('s_'+f).value={dew_high:au.dew_high,dew_low:au.dew_low,cool_f:au.cool_f,floor_f:au.floor,away_dew_high:au.away_dew_high,away_cool_f:au.away_cool_f,max_dry_minutes:au.max_dry}[f];
+if(Date.now()>lock)renderAc();
+const fd=$('feed');fd.replaceChildren();for(const e of S.activity){const li=document.createElement('li'),i=document.createElement('span'),t=document.createElement('span'),w=document.createElement('span');
+i.className='i';i.textContent={remote:'📡',web:'📱',phone:'🌍',auto:'🤖',sensor:'🌡',system:'⚙️'}[e.src]||'•';t.textContent=e.text;w.className='t';w.textContent=clock(e.age);li.append(i,t,w);fd.append(li)}
+if(!S.activity.length){const li=document.createElement('li');li.innerHTML='<span></span><span class="sub">Nothing yet</span><span></span>';fd.append(li)}
+const sl=$('sensors');sl.replaceChildren();for(const s of S.sensors){const d=document.createElement('div');d.className='sensor';const l=document.createElement('div'),b=document.createElement('b'),m=document.createElement('div');
+b.textContent=s.t.toFixed(1)+'°F · '+s.rh.toFixed(0)+'%';m.className='sub';m.textContent='…'+s.mac.slice(-8)+' · '+s.rssi+' dBm · '+ago(s.age);l.append(b,m);d.append(l);
+if(s.mac===r.mac){const x=document.createElement('span');x.className='pill ok';x.innerHTML='<span class="dot"></span>In use';d.append(x)}else{const x=document.createElement('button');x.className='btn ghost';x.textContent='Use';x.onclick=()=>post('/api/bind',{mac:s.mac}).then(refresh);d.append(x)}sl.append(d)}
+if(!S.sensors.length)sl.textContent='No Govee H5075 heard yet.';
+const dv=$('device');dv.replaceChildren();for(const [k,v] of [['Home address','http://'+S.wifi.ip+'/'],['Remote access',S.remote&&S.remote.connected?'Connected':'Off'],['Wi-Fi',S.wifi.ssid+' · '+S.wifi.rssi+' dBm'],['Firmware',S.firmware],['Running for',dur(S.uptime)],['Infrared',S.ir_ready?'Unit IR + built-in LED':'Unavailable']]){
+const r=document.createElement('div');r.className='kv';const a=document.createElement('span');a.textContent=k;const b=document.createElement('b');b.textContent=v;r.append(a,b);dv.append(r)}}
+$('range').onclick=e=>{const h=e.target.dataset.h;if(!h)return;hours=+h;$('rangelbl').textContent=h+' hours';for(const b of $('range').children)b.classList.toggle('on',b===e.target);draw()};
+function draw(hover){const c=$('chart'),dpr=devicePixelRatio||1,W=c.clientWidth,Hh=c.clientHeight;c.width=W*dpr;c.height=Hh*dpr;const g=c.getContext('2d');g.scale(dpr,dpr);
+const cs=getComputedStyle(document.body),col=n=>cs.getPropertyValue(n).trim();g.font='11px -apple-system,system-ui';
+if(!H||H.rh.filter(v=>v!=null).length<2){g.fillStyle=col('--muted');g.font='13px -apple-system,system-ui';g.fillText('Collecting readings — one point every '+((H&&H.step)||300)/60+' minutes.',4,Hh/2);return}
+const n=Math.min(H.rh.length,Math.round(hours*3600/H.step));const rh=H.rh.slice(-n),tp=H.t.slice(-n),dr=H.dry.slice(-n),dw=rh.map((v,i)=>dewF(tp[i],v));
+const L=30,R=30,T=8,B=20,w=W-L-R,h=Hh-T-B,x=i=>L+(n<2?w:i*w/(n-1));
+const rng=(arrs,pad)=>{const v=arrs.flat().filter(v=>v!=null);let lo=Math.min(...v),hi=Math.max(...v);if(hi-lo<pad){const m=(hi+lo)/2;lo=m-pad/2;hi=m+pad/2}return[Math.floor(lo-1),Math.ceil(hi+1)]};
+const [rl,rhh]=rng([rh],10),[tl,th]=rng([tp,dw],8);
+g.fillStyle=col('--dry-soft');for(let i=0;i<n;i++)if(dr[i])g.fillRect(x(i)-w/n/2,T,Math.max(1.5,w/n),h);
+g.strokeStyle=col('--line');g.lineWidth=1;g.fillStyle=col('--muted');
+for(let k=0;k<=3;k++){const y=T+h*k/3;g.beginPath();g.moveTo(L,y);g.lineTo(W-R,y);g.stroke();g.textAlign='right';g.fillText(Math.round(rhh-(rhh-rl)*k/3)+'%',L-5,y+4);g.textAlign='left';g.fillText(Math.round(th-(th-tl)*k/3)+'°',W-R+5,y+4)}
+const line=(a,lo,hi,c,dash)=>{g.strokeStyle=c;g.lineWidth=2.2;g.lineJoin='round';g.setLineDash(dash||[]);g.beginPath();let pen=false;a.forEach((v,i)=>{if(v==null){pen=false;return}const y=T+h*(1-(v-lo)/(hi-lo));pen?g.lineTo(x(i),y):g.moveTo(x(i),y);pen=true});g.stroke();g.setLineDash([])};
+line(tp,tl,th,col('--temp'));line(dw,tl,th,col('--dew'),[5,4]);line(rh,rl,rhh,col('--rh'));
+g.textAlign='center';g.fillStyle=col('--muted');for(let k=0;k<=3;k++){const i=Math.round((n-1)*k/3),s=(n-1-i)*H.step;g.fillText(k==3?'now':new Date(Date.now()-s*1000).toLocaleTimeString([],{hour:'numeric'}),x(i),Hh-5)}
+if(hover!=null){const i=Math.max(0,Math.min(n-1,Math.round((hover-L)/w*(n-1))));g.strokeStyle=col('--ink');g.globalAlpha=.3;g.beginPath();g.moveTo(x(i),T);g.lineTo(x(i),T+h);g.stroke();g.globalAlpha=1;
+$('tip').textContent=rh[i]==null?'No reading':clock((n-1-i)*H.step)+' · '+rh[i].toFixed(0)+'% · dew '+dw[i].toFixed(1)+'° · '+tp[i].toFixed(1)+'°F'+(dr[i]?' · drying':'')}}
+const chart=$('chart');const hov=e=>{const r=chart.getBoundingClientRect();draw((e.touches?e.touches[0].clientX:e.clientX)-r.left)};
+chart.addEventListener('mousemove',hov);chart.addEventListener('touchmove',hov,{passive:true});chart.addEventListener('touchstart',hov,{passive:true});chart.addEventListener('mouseleave',()=>{$('tip').textContent='';draw()});
+addEventListener('resize',()=>draw());
+async function refresh(){try{S=await (await fetch('/api/state',{cache:'no-store'})).json();render()}catch(e){$('hdrsub').textContent='Atom unreachable — retrying…'}}
+async function history(){try{H=await (await fetch('/api/history',{cache:'no-store'})).json();draw()}catch(e){}}
+$('r_save').onclick=async()=>{if(await post('/api/remote',{host:$('r_host').value.trim().replace(/^\w+:\/\//,'').replace(/[:\/].*$/,''),user:$('r_user').value.trim(),password:$('r_pass').value}))$('r_pass').value='';refresh()};
+$('p_save').onclick=async()=>{if(await post('/api/remote',{page_password:$('p_new').value}))$('p_new').value=''};
+if(REMOTE){remoteConnect();setInterval(hello,20000);document.addEventListener('visibilitychange',hello)}
+else{refresh();history();setInterval(refresh,3000);setInterval(history,60000);document.addEventListener('visibilitychange',()=>{if(!document.hidden){refresh();history()}})}
+</script></body></html>
