@@ -202,7 +202,7 @@ if(r.fresh&&r.dew!=null){const[f,c]=feel(r.dew);$('comfort').textContent=f;$('co
 const p=$('autopill');p.className='pill '+(au.drying?'busy':au.enabled?'ok':'bad');p.lastElementChild.textContent=au.drying?'Drying':au.enabled?(au.away?'Away':'Smart dry on'):'Paused';
 $('autosw').classList.toggle('on',au.enabled);setSeg('presence',au.away?1:0);
 $('autoico').textContent=!au.enabled?'⏸':au.drying?'💧':'✅';$('autoreason').textContent=au.enabled?au.reason:'Smart dry is off';
-$('autoplan').textContent=(au.away?'Away':'Home')+': Cool at '+(au.away?au.away_cool_f:au.cool_f)+'°F. Dry when dew point passes '+au.start_dew+'°F, stop at '+au.stop_dew+'°F, never below '+au.floor+'°F room temperature.';
+$('autoplan').textContent=(au.away?'Away':'Home')+': Cool at '+(au.away?au.away_cool_f:au.cool_f)+'°F, low fan. Dry when dew point passes '+au.start_dew+'°F, stop at '+au.stop_dew+'°F, never below '+au.floor+'°F room temperature.';
 if(!dirty)for(const f of FIELDS)$('s_'+f).value={dew_high:au.dew_high,dew_low:au.dew_low,cool_f:au.cool_f,floor_f:au.floor,away_dew_high:au.away_dew_high,away_cool_f:au.away_cool_f,max_dry_minutes:au.max_dry}[f];
 if(Date.now()>lock)renderAc();
 const fd=$('feed');fd.replaceChildren();for(const e of S.activity){const li=document.createElement('li'),i=document.createElement('span'),t=document.createElement('span'),w=document.createElement('span');
