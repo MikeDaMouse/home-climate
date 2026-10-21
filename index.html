@@ -17,7 +17,7 @@ h1{font-size:20px;margin:0;letter-spacing:-.015em}h2{font-size:12px;text-transfo
 main{max-width:980px;margin:6px auto 0;display:grid;gap:14px;grid-template-columns:repeat(12,1fr)}
 .card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:18px;box-shadow:var(--shadow);min-width:0}
 .s12{grid-column:1/-1}.s7{grid-column:span 7}.s5{grid-column:span 5}.s6{grid-column:span 6}
-@media(max-width:760px){main{gap:12px}.s7,.s5,.s6{grid-column:1/-1}#accard{order:1}#autocard{order:2}.chartcard{order:3}#feedcard{order:4}.later{order:5}footer{order:6}.card{padding:16px;border-radius:18px}}
+@media(max-width:760px){main{gap:12px}.s7,.s5,.s6{grid-column:1/-1}#wxcard{order:1}#accard{order:2}#autocard{order:3}.chartcard{order:4}#feedcard{order:5}.later{order:6}footer{order:7}.card{padding:16px;border-radius:18px}}
 .pill{display:inline-flex;align-items:center;gap:7px;padding:6px 11px;border-radius:99px;background:var(--card);border:1px solid var(--line);font-size:12.5px;font-weight:650;white-space:nowrap}
 .dot{width:8px;height:8px;border-radius:50%;background:var(--muted)}.ok .dot{background:#16a34a}.busy .dot{background:var(--dry)}.bad .dot{background:var(--warn)}
 .sub{color:var(--muted);font-size:13px}.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.between{justify-content:space-between}
@@ -70,6 +70,16 @@ canvas{width:100%;height:0;min-height:200px;flex:1 1 200px;display:block;touch-a
 #login{position:fixed;inset:0;z-index:20;background:var(--bg);display:none;place-items:center;padding:20px}
 #login .card{width:100%;max-width:380px}#login label{display:block;font-size:12px;color:var(--muted);font-weight:650;margin-top:10px}
 .remoteonly{display:none}body.remote .remoteonly{display:block}body.remote .localonly{display:none}
+.wx{display:grid;grid-template-columns:auto 1fr;gap:18px;align-items:center}
+@media(max-width:560px){.wx{grid-template-columns:1fr}}
+.wxnow{display:flex;align-items:center;gap:12px}.wxicon{font-size:44px;line-height:1}.wxtemp{font-size:44px;font-weight:720;letter-spacing:-.03em;line-height:1;font-variant-numeric:tabular-nums}
+.wxcond{font-weight:650;font-size:14px}.wxstats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+@media(max-width:400px){.wxstats{grid-template-columns:repeat(2,1fr)}}
+.hours{display:flex;gap:6px;overflow-x:auto;margin-top:14px;padding-bottom:4px;scrollbar-width:thin}
+.hr{flex:0 0 52px;text-align:center;background:var(--bg);border-radius:12px;padding:8px 4px;font-size:12px;color:var(--muted)}
+.hr b{display:block;color:var(--ink);font-size:14px;font-variant-numeric:tabular-nums}.hr .e{font-size:18px;display:block;margin:2px 0}.hr .p{color:#2563eb;font-weight:650}
+@media(prefers-color-scheme:dark){.hr .p{color:#7aa7ff}}
+.compare{margin-top:12px;font-size:13px;color:var(--muted)}
 footer{grid-column:1/-1;text-align:center;color:var(--muted);font-size:12px;margin:6px 0}
 </style></head><body>
 <div class="top"><div><div><h1>Home Climate</h1><div class="sub" id="hdrsub">Connecting…</div></div>
@@ -79,6 +89,11 @@ footer{grid-column:1/-1;text-align:center;color:var(--muted);font-size:12px;marg
 <h2>Humidity</h2><div class="rhbig" id="rh">—<small>%</small></div><div class="comfort" id="comfort">—</div></div>
 <div><div class="stats"><div class="stat"><span>Temp</span><b id="temp">—</b></div><div class="stat"><span>Dew point</span><b id="dew">—</b></div><div class="stat"><span>Battery</span><b id="bat">—</b></div></div>
 <div class="gauge"><b id="gstop"></b><b id="gstart"></b><i id="gdot" style="left:0"></i></div><div class="scale"><span>Dry 50°</span><span>Comfortable</span><span>Muggy 68°</span></div></div></div></section>
+
+<section class="card s12" id="wxcard"><div class="row between" style="margin-bottom:12px"><h2 style="margin:0">Outside</h2><span class="sub" id="wxupd"></span></div>
+<div class="wx"><div class="wxnow"><span class="wxicon" id="wxicon">·</span><div><div class="wxtemp" id="wxtemp">—</div><div class="wxcond" id="wxcond">Loading weather…</div></div></div>
+<div class="wxstats"><div class="stat"><span>Humidity</span><b id="wxrh">—</b></div><div class="stat"><span>Dew point</span><b id="wxdew">—</b></div><div class="stat"><span>Feels like</span><b id="wxfeel">—</b></div><div class="stat"><span>Wind</span><b id="wxwind">—</b></div></div></div>
+<div class="hours" id="wxhours"></div><div class="compare" id="wxcompare"></div></section>
 
 <section class="card s5" id="accard"><div class="row between"><h2 style="margin:0">Air conditioner</h2>
 <button class="power" id="power" aria-label="Power"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 3v8"/><path d="M6.3 7.2a8 8 0 1 0 11.4 0"/></svg></button></div>
@@ -177,7 +192,7 @@ $('setnote').textContent=a.mode==2?'AC holds about 74°F':a.turbo?'Turbo':'set p
 setSeg('mode',a.mode);setSeg('fan',a.fan);for(const id of ['swingv','swingh','turbo','light'])$(id).classList.toggle('on',!!a[id]);
 const who={remote:'📡 From the original remote',automation:'🤖 Set by Smart dry',web:'📱 Sent from this dashboard',saved:'💾 Last known state'}[a.source]||'';
 $('acsource').textContent=a.known?who+' · '+ago(a.age)+' — '+(a.power?MODES[a.mode]+(a.temp&&a.mode!=2?' '+a.temp+'°F':'')+', fan '+(FANS[a.fan]||a.fan):'Off'):'State unknown until the remote is used or a command is sent.'}
-function render(){const r=S.room,au=S.automation;
+function render(){weather();const r=S.room,au=S.automation;
 $('hdrsub').textContent=REMOTE&&!atomOnline?'Atom is offline — last known state':(REMOTE?'Remote · ':'')+(r.fresh?'Updated '+ago(r.age):'Waiting for the Govee sensor…');
 if(!REMOTE&&S.remote){const rp=$('relaypill');rp.className='pill '+(S.remote.connected?'ok':S.remote.configured?'bad':'');rp.lastElementChild.textContent=S.remote.connected?'Connected':S.remote.configured?(S.remote.error||'Connecting…'):'Off';if(!$('r_host').value&&document.activeElement!==$('r_host'))$('r_host').value=S.remote.host||'';if(!$('r_user').value&&document.activeElement!==$('r_user'))$('r_user').value=S.remote.user||''}
 $('rh').innerHTML=r.fresh?r.rh.toFixed(0)+'<small>%</small>':'—<small>%</small>';$('temp').textContent=r.fresh?r.t.toFixed(1)+'°':'—';
@@ -218,6 +233,24 @@ $('tip').textContent=rh[i]==null?'No reading':clock((n-1-i)*H.step)+' · '+rh[i]
 const chart=$('chart');const hov=e=>{const r=chart.getBoundingClientRect();draw((e.touches?e.touches[0].clientX:e.clientX)-r.left)};
 chart.addEventListener('mousemove',hov);chart.addEventListener('touchmove',hov,{passive:true});chart.addEventListener('touchstart',hov,{passive:true});chart.addEventListener('mouseleave',()=>{$('tip').textContent='';draw()});
 addEventListener('resize',()=>draw());
+// Outdoor weather from Open-Meteo (NOAA models for the US), for the location stored on the Atom.
+const WMO={0:['☀️','Clear'],1:['🌤','Mostly clear'],2:['⛅','Partly cloudy'],3:['☁️','Overcast'],45:['🌫','Fog'],48:['🌫','Fog'],51:['🌦','Light drizzle'],53:['🌦','Drizzle'],55:['🌧','Heavy drizzle'],
+61:['🌦','Light rain'],63:['🌧','Rain'],65:['🌧','Heavy rain'],66:['🌧','Freezing rain'],67:['🌧','Freezing rain'],80:['🌦','Showers'],81:['🌧','Showers'],82:['⛈','Heavy showers'],95:['⛈','Thunderstorm'],96:['⛈','Thunderstorm, hail'],99:['⛈','Thunderstorm, hail']};
+let W=null,wxAt=0,wxLoc='';
+async function weather(){const loc=S&&S.location;if(!loc)return;const key=loc.lat+','+loc.lon;if(key===wxLoc&&Date.now()-wxAt<600000)return;wxLoc=key;wxAt=Date.now();
+const u='https://api.open-meteo.com/v1/forecast?latitude='+loc.lat+'&longitude='+loc.lon+'&current=temperature_2m,relative_humidity_2m,dew_point_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m,wind_gusts_10m,is_day'
++'&hourly=temperature_2m,precipitation_probability,precipitation,weather_code&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,precipitation_sum&forecast_hours=13&forecast_days=1&temperature_unit=fahrenheit&wind_speed_unit=mph&precipitation_unit=inch&timezone=America%2FNew_York';
+try{const r=await fetch(u);if(!r.ok)throw 0;W=await r.json();renderWx()}catch(e){wxAt=Date.now()-540000;$('wxcond').textContent='Weather unavailable — retrying'}}
+function renderWx(){if(!W)return;const c=W.current,[ic,txt]=WMO[c.weather_code]||['·','—'];$('wxicon').textContent=c.is_day||c.weather_code>3?ic:(c.weather_code<=1?'🌙':ic);
+$('wxtemp').textContent=Math.round(c.temperature_2m)+'°';const d=W.daily;
+$('wxcond').textContent=txt+(c.precipitation>0?' · '+c.precipitation.toFixed(2)+' in now':'')+' · H '+Math.round(d.temperature_2m_max[0])+'° L '+Math.round(d.temperature_2m_min[0])+'°'+(d.precipitation_probability_max[0]!=null?' · rain '+d.precipitation_probability_max[0]+'% today':'');
+$('wxrh').textContent=Math.round(c.relative_humidity_2m)+'%';$('wxdew').textContent=c.dew_point_2m.toFixed(1)+'°';$('wxfeel').textContent=Math.round(c.apparent_temperature)+'°';
+$('wxwind').textContent=Math.round(c.wind_speed_10m)+(c.wind_gusts_10m>c.wind_speed_10m+8?'–'+Math.round(c.wind_gusts_10m):'')+' mph';
+$('wxupd').textContent='Updated '+new Date(wxAt).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});
+const h=W.hourly,box=$('wxhours');box.replaceChildren();for(let i=0;i<h.time.length;i++){const el=document.createElement('div');el.className='hr';const t=new Date(h.time[i]);
+const lab=document.createElement('span');lab.textContent=i?t.toLocaleTimeString([],{hour:'numeric'}):'Now';const e=document.createElement('span');e.className='e';e.textContent=(WMO[h.weather_code[i]]||['·'])[0];
+const b=document.createElement('b');b.textContent=Math.round(h.temperature_2m[i])+'°';const p=document.createElement('span');p.className='p';p.textContent=h.precipitation_probability[i]>=10?h.precipitation_probability[i]+'%':'';el.append(lab,e,b,p);box.append(el)}
+const indoor=S&&S.room&&S.room.fresh?S.room.dew:null;$('wxcompare').textContent=indoor==null?'':c.dew_point_2m>indoor+2?'Outside air holds more moisture than inside ('+c.dew_point_2m.toFixed(0)+'° vs '+indoor.toFixed(0)+'° dew point) — keep windows and doors closed.':c.dew_point_2m<indoor-2?'Outside air is drier than inside ('+c.dew_point_2m.toFixed(0)+'° vs '+indoor.toFixed(0)+'° dew point) — airing out would help.':'Outside and inside moisture are about the same.'}
 async function refresh(){try{S=await (await fetch('/api/state',{cache:'no-store'})).json();render()}catch(e){$('hdrsub').textContent='Atom unreachable — retrying…'}}
 async function history(){try{H=await (await fetch('/api/history',{cache:'no-store'})).json();draw()}catch(e){}}
 $('r_save').onclick=async()=>{if(await post('/api/remote',{host:$('r_host').value.trim().replace(/^\w+:\/\//,'').replace(/[:\/].*$/,''),user:$('r_user').value.trim(),password:$('r_pass').value}))$('r_pass').value='';refresh()};
