@@ -6,9 +6,9 @@
 <title>Home Climate</title>
 <style>
 :root{--bg:#eef2f1;--card:#fff;--ink:#14231f;--muted:#64776f;--line:#dde6e2;--accent:#0f766e;--accent-soft:#d5efe9;--warn:#b91c1c;
---rh:#0f766e;--temp:#c2410c;--dew:#6d28d9;--dry:#b45309;--dry-soft:#fdeccf;--shadow:0 1px 2px rgba(16,40,34,.05),0 10px 30px rgba(16,40,34,.06);--blur:rgba(238,242,241,.82)}
+--rh:#0f766e;--temp:#c2410c;--dew:#6d28d9;--dry:#b45309;--dry-soft:#fdeccf;--cool-soft:#dbe7ff;--shadow:0 1px 2px rgba(16,40,34,.05),0 10px 30px rgba(16,40,34,.06);--blur:rgba(238,242,241,.82)}
 @media(prefers-color-scheme:dark){:root{--bg:#0b1110;--card:#141c1a;--ink:#e6efec;--muted:#8fa39c;--line:#24302d;--accent:#2dd4bf;--accent-soft:#123630;--warn:#f87171;
---rh:#2dd4bf;--temp:#fb923c;--dew:#a78bfa;--dry:#f5b041;--dry-soft:#3a2a10;--shadow:none;--blur:rgba(11,17,16,.82)}}
+--rh:#2dd4bf;--temp:#fb923c;--dew:#a78bfa;--dry:#f5b041;--dry-soft:#3a2a10;--cool-soft:#17264a;--shadow:none;--blur:rgba(11,17,16,.82)}}
 *{box-sizing:border-box}html{-webkit-text-size-adjust:100%}
 body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",system-ui,sans-serif;padding:0 16px calc(28px + env(safe-area-inset-bottom))}
 .top{position:sticky;top:0;z-index:5;margin:0 -16px;padding:calc(10px + env(safe-area-inset-top)) 16px 10px;background:var(--blur);-webkit-backdrop-filter:saturate(1.6) blur(16px);backdrop-filter:saturate(1.6) blur(16px)}
@@ -17,7 +17,7 @@ h1{font-size:20px;margin:0;letter-spacing:-.015em}h2{font-size:12px;text-transfo
 main{max-width:980px;margin:6px auto 0;display:grid;gap:14px;grid-template-columns:repeat(12,1fr)}
 .card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:18px;box-shadow:var(--shadow);min-width:0}
 .s12{grid-column:1/-1}.s7{grid-column:span 7}.s5{grid-column:span 5}.s6{grid-column:span 6}
-@media(max-width:760px){main{gap:12px}.s7,.s5,.s6{grid-column:1/-1}#wxcard{order:1}#accard{order:2}#autocard{order:3}.chartcard{order:4}#feedcard{order:5}.later{order:6}footer{order:7}.card{padding:16px;border-radius:18px}}
+@media(max-width:760px){main{gap:12px}.s7,.s5,.s6{grid-column:1/-1}#wxcard{order:1}#accard{order:2}#autocard{order:3}.chartcard{order:4}#energycard{order:5}#feedcard{order:6}.later{order:7}footer{order:8}.card{padding:16px;border-radius:18px}}
 .pill{display:inline-flex;align-items:center;gap:7px;padding:6px 11px;border-radius:99px;background:var(--card);border:1px solid var(--line);font-size:12.5px;font-weight:650;white-space:nowrap}
 .dot{width:8px;height:8px;border-radius:50%;background:var(--muted)}.ok .dot{background:#16a34a}.busy .dot{background:var(--dry)}.bad .dot{background:var(--warn)}
 .sub{color:var(--muted);font-size:13px}.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.between{justify-content:space-between}
@@ -80,6 +80,8 @@ canvas{width:100%;height:0;min-height:200px;flex:1 1 200px;display:block;touch-a
 .hr b{display:block;color:var(--ink);font-size:14px;font-variant-numeric:tabular-nums}.hr .e{font-size:18px;display:block;margin:2px 0}.hr .p{color:#2563eb;font-weight:650}
 @media(prefers-color-scheme:dark){.hr .p{color:#7aa7ff}}
 .compare{margin-top:12px;font-size:13px;color:var(--muted)}
+.bar{height:8px;border-radius:9px;background:var(--line);overflow:hidden;margin:8px 0 4px}.bar i{display:block;height:100%;background:var(--accent);border-radius:9px}
+.bar.due i{background:var(--dry)}.hours3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 footer{grid-column:1/-1;text-align:center;color:var(--muted);font-size:12px;margin:6px 0}
 </style></head><body>
 <div class="top"><div><div><h1>Home Climate</h1><div class="sub" id="hdrsub">Connecting…</div></div>
@@ -111,22 +113,35 @@ footer{grid-column:1/-1;text-align:center;color:var(--muted);font-size:12px;marg
 <div class="seg" id="presence" style="margin-top:14px"><button data-v="0">🏠 Home</button><button data-v="1">🚶 Away</button></div>
 <div class="status"><span class="ico" id="autoico">⏸</span><div><b id="autoreason">—</b><div class="sub" id="autoplan"></div></div></div>
 <details id="tune"><summary>Adjust targets</summary>
-<div class="fields"><label>Home: dry above dew point °F<input id="s_dew_high" type="number" step="0.5" inputmode="decimal"></label>
-<label>Stop when dew point ≤ °F<input id="s_dew_low" type="number" step="0.5" inputmode="decimal"></label>
-<label>Home Cool set point °F<input id="s_cool_f" type="number" inputmode="numeric"></label>
-<label>Never cool room below °F<input id="s_floor_f" type="number" inputmode="numeric"></label>
+<div class="fields"><label>Dry when dew point above °F<input id="s_dew_high" type="number" step="0.5" inputmode="decimal"></label>
+<label>Stop when dew point at or below °F<input id="s_dew_low" type="number" step="0.5" inputmode="decimal"></label>
+<label>Day: keep room under °F<input id="s_max_day" type="number" step="0.5" inputmode="decimal"></label>
+<label>Night: keep room under °F<input id="s_max_night" type="number" step="0.5" inputmode="decimal"></label>
+<label>Night starts (hour, 0–23)<input id="s_night_start" type="number" min="0" max="23" inputmode="numeric"></label>
+<label>Night ends (hour, 0–23)<input id="s_night_end" type="number" min="0" max="23" inputmode="numeric"></label>
+<label>Never cool room below °F<input id="s_floor_f" type="number" step="0.5" inputmode="decimal"></label>
 <label>Away: dry above dew point °F<input id="s_away_dew_high" type="number" step="0.5" inputmode="decimal"></label>
-<label>Away Cool set point °F<input id="s_away_cool_f" type="number" inputmode="numeric"></label>
-<label>Max drying, minutes<input id="s_max_dry_minutes" type="number" inputmode="numeric"></label></div>
-<p class="sub">Dew point is the moisture actually in the air — unlike %RH it doesn't change as the room cools. Under 55°F feels crisp, 55–60°F comfortable, over 62°F sticky and mold-friendly.</p>
+<label>Away: keep room under °F<input id="s_away_max" type="number" step="0.5" inputmode="decimal"></label></div>
+<p class="sub">Smart dry runs Dry when the air is humid or the room is over the limit, and turns the AC off when both are fine, so the wet coil is never fanned back into the room. If Dry can't hold the limit for 30 minutes (2°F over), Cool with low fan steps in until the room is back under. Every change lasts at least 10 minutes. Dew point is the moisture actually in the air: under 55°F feels crisp, 55–60°F comfortable, over 62°F sticky and mold-friendly.</p>
 <button class="btn" id="savebtn">Save targets</button></details></section>
 
 <section class="card s7 chartcard"><div class="row between" style="margin-bottom:10px"><h2 style="margin:0">Last <span id="rangelbl">24 hours</span></h2>
-<div class="tabs" id="range"><button data-h="3">3h</button><button data-h="12">12h</button><button data-h="24" class="on">24h</button></div></div>
+<div class="tabs" id="range"><button data-h="3">3h</button><button data-h="24" class="on">24h</button><button data-h="168">7d</button><button data-h="720">30d</button></div></div>
 <canvas id="chart"></canvas><div id="tip"></div>
-<div class="legend"><span style="--c:var(--rh)">Humidity %</span><span style="--c:var(--dew)">Dew point °F</span><span style="--c:var(--temp)">Temp °F</span><span style="--c:var(--dry-soft)">Drying</span></div></section>
+<div class="legend"><span style="--c:var(--rh)">Humidity %</span><span style="--c:var(--dew)">Dew point °F</span><span style="--c:var(--temp)">Temp °F</span><span style="--c:var(--dry-soft)">Dry</span><span style="--c:var(--cool-soft)">Cool</span></div></section>
 
-<section class="card s5" id="feedcard"><h2>Activity</h2><ul class="feed" id="feed"></ul></section>
+<section class="card s6" id="energycard"><div class="row between"><h2 style="margin:0">Running time &amp; energy</h2><span class="sub" id="engnote"></span></div>
+<div class="hours3" style="margin-top:12px"><div class="stat"><span>Dry today</span><b id="h_dry">—</b></div><div class="stat"><span>Cool today</span><b id="h_cool">—</b></div><div class="stat"><span>Off today</span><b id="h_off">—</b></div></div>
+<div class="hours3" style="margin-top:8px"><div class="stat"><span>Today (est.)</span><b id="e_today">—</b></div><div class="stat"><span>7-day avg / day</span><b id="e_avg">—</b></div><div class="stat"><span>Per month (est.)</span><b id="e_month">—</b></div></div>
+<div class="label">Air filter</div><div class="bar" id="filterbar"><i style="width:0"></i></div>
+<div class="row between"><span class="sub" id="filtertxt">—</span><button class="btn ghost" id="filterbtn">Filter cleaned</button></div>
+<details id="calib"><summary>Estimate settings</summary><div class="fields">
+<label>Dry draws (kW)<input id="k_dry" type="number" step="0.05" inputmode="decimal"></label><label>Cool draws (kW)<input id="k_cool" type="number" step="0.05" inputmode="decimal"></label>
+<label>Fan / other (kW)<input id="k_other" type="number" step="0.01" inputmode="decimal"></label><label>Electric rate ($/kWh)<input id="k_rate" type="number" step="0.005" inputmode="decimal"></label></div>
+<p class="sub">Averages for an 18,000 BTU inverter unit. Compare a few days against your FPL hourly usage and adjust; settings are saved on this device.</p></details>
+<div class="row" style="margin-top:14px"><button class="btn" id="exportbtn">Download all data (CSV)</button><span class="sub" id="exportmsg"></span></div></section>
+
+<section class="card s6" id="feedcard"><h2>Activity</h2><ul class="feed" id="feed"></ul></section>
 <section class="card s6 later"><h2>Sensors nearby</h2><div id="sensors" class="sub">Scanning…</div></section>
 <section class="card s6 later"><h2>Device</h2><div id="device"></div></section>
 <section class="card s12 later localonly" id="remotecard"><div class="row between"><h2 style="margin:0">Access from anywhere</h2><span class="pill" id="relaypill"><span class="dot"></span><span>—</span></span></div>
@@ -146,20 +161,24 @@ footer{grid-column:1/-1;text-align:center;color:var(--muted);font-size:12px;marg
 <button class="btn" id="l_go" style="width:100%;margin-top:16px">Connect</button><p class="sub" id="l_msg"></p></div></div>
 <script>
 const $=id=>document.getElementById(id);const MODES={1:'Heat',2:'Dry',3:'Cool',7:'Auto',8:'Fan'};const FANS={0:'Auto',1:'Quiet',2:'Low',3:'Medium',5:'High'};
-const FIELDS=['dew_high','dew_low','cool_f','floor_f','away_dew_high','away_cool_f','max_dry_minutes'];
+const FIELDS=['dew_high','dew_low','max_day','max_night','night_start','night_end','floor_f','away_dew_high','away_max'];
 let S=null,H=null,hours=24,lock=0,pendingTemp=null,tempTimer=null,dirty=false;
 // Served by the Atom over http at home; opened over https from anywhere else, via the MQTT relay.
 const REMOTE=location.protocol==='https:'||location.search.includes('remote');if(REMOTE)document.body.classList.add('remote');
-let mq=null,pendingReplies={},atomOnline=true;
+let mq=null,pendingReplies={},pendingData={},atomOnline=true,H24=null,RT=null;
+// Remote: ask the Atom for larger data (history, runtime, CSV) and collect the pieces.
+function dataReq(op,extra){return new Promise((ok,fail)=>{if(!mq||!mq.connected)return fail(new Error('Not connected'));const id=Math.random().toString(36).slice(2),parts=[];
+const timer=setTimeout(()=>{delete pendingData[id];fail(new Error('No answer from the Atom'))},30000);
+pendingData[id]=m=>{parts[m.seq]=m.data;if(m.last){clearTimeout(timer);delete pendingData[id];ok(parts)}};const msg={id,op};for(const k in extra||{})msg[k]=String(extra[k]);mq.publish('home-climate/cmd',JSON.stringify(msg),{qos:1})})}
 function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,v)}catch(e){}}
 function normalize(s){if(!s||!s.now)return s;const lag=Math.max(0,Date.now()/1000-s.now);if(s.room.age>=0)s.room.age+=lag;if(s.ac.age>=0)s.ac.age+=lag;for(const e of s.activity)e.age+=lag;for(const x of s.sensors)x.age+=lag;return s}
 function remoteConnect(){const host=ls('hc_host'),user=ls('hc_user'),pass=ls('hc_pass');if(!host||!user||!pass){$('login').style.display='grid';return}
 $('hdrsub').textContent='Connecting to relay…';const go=()=>{mq=mqtt.connect('wss://'+host+':8084/mqtt',{username:user,password:pass,clientId:'phone-'+Math.random().toString(16).slice(2,10),reconnectPeriod:4000,connectTimeout:10000,clean:true});
-mq.on('connect',()=>{$('login').style.display='none';mq.subscribe(['home-climate/state','home-climate/history','home-climate/result','home-climate/online']);hello()});
+mq.on('connect',()=>{$('login').style.display='none';mq.subscribe(['home-climate/state','home-climate/history','home-climate/result','home-climate/online','home-climate/data']);hello();history();runtime()});
 mq.on('error',e=>{if(/auth|Not authorized|Bad user/i.test(e.message)){mq.end(true);ls('hc_pass',null);$('login').style.display='grid';$('l_msg').textContent='Login rejected — check the username and password.'}});
 mq.on('offline',()=>$('hdrsub').textContent='Offline — retrying…');
 mq.on('message',(t,m)=>{const txt=m.toString();if(t.endsWith('/online')){atomOnline=txt==='1';if(S)render();return}let j;try{j=JSON.parse(txt)}catch(e){return}
-if(t.endsWith('/state')){S=normalize(j);render()}else if(t.endsWith('/history')){H=j;draw()}else if(t.endsWith('/result')&&pendingReplies[j.id]){pendingReplies[j.id](j);delete pendingReplies[j.id]}})};
+if(t.endsWith('/state')){S=normalize(j);render()}else if(t.endsWith('/history')){H24=j;if(hours<=24){H=j;draw()}}else if(t.endsWith('/data')&&pendingData[j.id]){pendingData[j.id](j)}else if(t.endsWith('/result')&&pendingReplies[j.id]){pendingReplies[j.id](j);delete pendingReplies[j.id]}})};
 if(window.mqtt)go();else{const sc=document.createElement('script');sc.src='https://unpkg.com/mqtt@5.10.1/dist/mqtt.min.js';sc.onload=go;sc.onerror=()=>toast('Could not load the relay library',true);document.head.append(sc)}}
 function hello(){if(mq&&mq.connected&&!document.hidden)mq.publish('home-climate/hello','1')}
 $('l_go').onclick=()=>{ls('hc_host',$('l_host').value.trim().replace(/^\w+:\/\//,'').replace(/[:\/].*$/,''));ls('hc_user',$('l_user').value.trim());ls('hc_pass',$('l_pass').value);$('l_msg').textContent='';if(mq)mq.end(true);remoteConnect()};
@@ -199,11 +218,12 @@ $('rh').innerHTML=r.fresh?r.rh.toFixed(0)+'<small>%</small>':'—<small>%</small
 $('dew').textContent=r.fresh&&r.dew!=null?r.dew.toFixed(1)+'°':'—';$('bat').textContent=r.battery>=0?r.battery+'%':'—';
 const pos=d=>Math.min(100,Math.max(0,(d-50)/18*100))+'%';$('gstart').style.left=pos(au.start_dew);$('gstop').style.left=pos(au.stop_dew);
 if(r.fresh&&r.dew!=null){const[f,c]=feel(r.dew);$('comfort').textContent=f;$('comfort').className='comfort '+c;$('gdot').style.left=pos(r.dew)}else{$('comfort').textContent=r.mac?'Waiting for reading':'Pick a sensor below';$('comfort').className='comfort'}
-const p=$('autopill');p.className='pill '+(au.drying?'busy':au.enabled?'ok':'bad');p.lastElementChild.textContent=au.drying?'Drying':au.enabled?(au.away?'Away':'Smart dry on'):'Paused';
+const p=$('autopill');p.className='pill '+(au.enabled&&au.state!=='off'&&au.state!=='unknown'?'busy':au.enabled?'ok':'bad');p.lastElementChild.textContent=!au.enabled?'Paused':au.state==='dry'?'Drying':au.state==='cool'?'Cooling':au.away?'Away · AC off':'Smart dry · AC off';
 $('autosw').classList.toggle('on',au.enabled);setSeg('presence',au.away?1:0);
-$('autoico').textContent=!au.enabled?'⏸':au.drying?'💧':'✅';$('autoreason').textContent=au.enabled?au.reason:'Smart dry is off';
-$('autoplan').textContent=(au.away?'Away':'Home')+': Cool at '+(au.away?au.away_cool_f:au.cool_f)+'°F, low fan. Dry when dew point passes '+au.start_dew+'°F, stop at '+au.stop_dew+'°F, never below '+au.floor+'°F room temperature.';
-if(!dirty)for(const f of FIELDS)$('s_'+f).value={dew_high:au.dew_high,dew_low:au.dew_low,cool_f:au.cool_f,floor_f:au.floor,away_dew_high:au.away_dew_high,away_cool_f:au.away_cool_f,max_dry_minutes:au.max_dry}[f];
+$('autoico').textContent=!au.enabled?'⏸':au.state==='dry'?'💧':au.state==='cool'?'❄️':'✅';$('autoreason').textContent=au.enabled?au.reason:'Smart dry is off';
+$('autoplan').textContent=(au.away?'Away':au.night?'Night':'Day')+': keep under '+au.limit+'°F and dew point under '+au.start_dew+'°F (dries down to '+au.stop_dew+'°F). Never below '+au.floor+'°F. AC is '+({dry:'in Dry',cool:'in Cool (backup)',off:'off',unknown:'not yet set'}[au.state]||au.state)+'.';
+if(!dirty)for(const f of FIELDS)$('s_'+f).value={dew_high:au.dew_high,dew_low:au.dew_low,max_day:au.max_day,max_night:au.max_night,night_start:au.night_start,night_end:au.night_end,floor_f:au.floor,away_dew_high:au.away_dew_high,away_max:au.away_max}[f];
+renderEnergy();
 if(Date.now()>lock)renderAc();
 const fd=$('feed');fd.replaceChildren();for(const e of S.activity){const li=document.createElement('li'),i=document.createElement('span'),t=document.createElement('span'),w=document.createElement('span');
 i.className='i';i.textContent={remote:'📡',web:'📱',phone:'🌍',auto:'🤖',sensor:'🌡',system:'⚙️'}[e.src]||'•';t.textContent=e.text;w.className='t';w.textContent=clock(e.age);li.append(i,t,w);fd.append(li)}
@@ -214,22 +234,22 @@ if(s.mac===r.mac){const x=document.createElement('span');x.className='pill ok';x
 if(!S.sensors.length)sl.textContent='No Govee H5075 heard yet.';
 const dv=$('device');dv.replaceChildren();for(const [k,v] of [['Home address','http://'+S.wifi.ip+'/'],['Remote access',S.remote&&S.remote.connected?'Connected':'Off'],['Wi-Fi',S.wifi.ssid+' · '+S.wifi.rssi+' dBm'],['Firmware',S.firmware],['Running for',dur(S.uptime)],['Infrared',S.ir_ready?'Unit IR + built-in LED':'Unavailable']]){
 const r=document.createElement('div');r.className='kv';const a=document.createElement('span');a.textContent=k;const b=document.createElement('b');b.textContent=v;r.append(a,b);dv.append(r)}}
-$('range').onclick=e=>{const h=e.target.dataset.h;if(!h)return;hours=+h;$('rangelbl').textContent=h+' hours';for(const b of $('range').children)b.classList.toggle('on',b===e.target);draw()};
+$('range').onclick=e=>{const h=e.target.dataset.h;if(!h)return;hours=+h;$('rangelbl').textContent=hours<=24?h+' hours':(hours/24)+' days';for(const b of $('range').children)b.classList.toggle('on',b===e.target);history()};
 function draw(hover){const c=$('chart'),dpr=devicePixelRatio||1,W=c.clientWidth,Hh=c.clientHeight;c.width=W*dpr;c.height=Hh*dpr;const g=c.getContext('2d');g.scale(dpr,dpr);
 const cs=getComputedStyle(document.body),col=n=>cs.getPropertyValue(n).trim();g.font='11px -apple-system,system-ui';
 if(!H||H.rh.filter(v=>v!=null).length<2){g.fillStyle=col('--muted');g.font='13px -apple-system,system-ui';g.fillText('Collecting readings — one point every '+((H&&H.step)||300)/60+' minutes.',4,Hh/2);return}
-const n=Math.min(H.rh.length,Math.round(hours*3600/H.step));const rh=H.rh.slice(-n),tp=H.t.slice(-n),dr=H.dry.slice(-n),dw=rh.map((v,i)=>dewF(tp[i],v));
+const n=Math.min(H.rh.length,Math.round(hours*3600/H.step));const rh=H.rh.slice(-n),tp=H.t.slice(-n),dr=(H.ac||[]).slice(-n),dw=rh.map((v,i)=>dewF(tp[i],v));
 const L=30,R=30,T=8,B=20,w=W-L-R,h=Hh-T-B,x=i=>L+(n<2?w:i*w/(n-1));
 const rng=(arrs,pad)=>{const v=arrs.flat().filter(v=>v!=null);let lo=Math.min(...v),hi=Math.max(...v);if(hi-lo<pad){const m=(hi+lo)/2;lo=m-pad/2;hi=m+pad/2}return[Math.floor(lo-1),Math.ceil(hi+1)]};
 const [rl,rhh]=rng([rh],10),[tl,th]=rng([tp,dw],8);
-g.fillStyle=col('--dry-soft');for(let i=0;i<n;i++)if(dr[i])g.fillRect(x(i)-w/n/2,T,Math.max(1.5,w/n),h);
+for(let i=0;i<n;i++)if(dr[i]==1||dr[i]==2){g.fillStyle=col(dr[i]==1?'--dry-soft':'--cool-soft');g.fillRect(x(i)-w/n/2,T,Math.max(1.5,w/n+.5),h)}
 g.strokeStyle=col('--line');g.lineWidth=1;g.fillStyle=col('--muted');
 for(let k=0;k<=3;k++){const y=T+h*k/3;g.beginPath();g.moveTo(L,y);g.lineTo(W-R,y);g.stroke();g.textAlign='right';g.fillText(Math.round(rhh-(rhh-rl)*k/3)+'%',L-5,y+4);g.textAlign='left';g.fillText(Math.round(th-(th-tl)*k/3)+'°',W-R+5,y+4)}
 const line=(a,lo,hi,c,dash)=>{g.strokeStyle=c;g.lineWidth=2.2;g.lineJoin='round';g.setLineDash(dash||[]);g.beginPath();let pen=false;a.forEach((v,i)=>{if(v==null){pen=false;return}const y=T+h*(1-(v-lo)/(hi-lo));pen?g.lineTo(x(i),y):g.moveTo(x(i),y);pen=true});g.stroke();g.setLineDash([])};
 line(tp,tl,th,col('--temp'));line(dw,tl,th,col('--dew'),[5,4]);line(rh,rl,rhh,col('--rh'));
-g.textAlign='center';g.fillStyle=col('--muted');for(let k=0;k<=3;k++){const i=Math.round((n-1)*k/3),s=(n-1-i)*H.step;g.fillText(k==3?'now':new Date(Date.now()-s*1000).toLocaleTimeString([],{hour:'numeric'}),x(i),Hh-5)}
+g.textAlign='center';g.fillStyle=col('--muted');for(let k=0;k<=3;k++){const i=Math.round((n-1)*k/3),s=(n-1-i)*H.step;const dt=new Date(Date.now()-s*1000);g.fillText(k==3?'now':hours>24?dt.toLocaleDateString([],{month:'short',day:'numeric'}):dt.toLocaleTimeString([],{hour:'numeric'}),x(i),Hh-5)}
 if(hover!=null){const i=Math.max(0,Math.min(n-1,Math.round((hover-L)/w*(n-1))));g.strokeStyle=col('--ink');g.globalAlpha=.3;g.beginPath();g.moveTo(x(i),T);g.lineTo(x(i),T+h);g.stroke();g.globalAlpha=1;
-$('tip').textContent=rh[i]==null?'No reading':clock((n-1-i)*H.step)+' · '+rh[i].toFixed(0)+'% · dew '+dw[i].toFixed(1)+'° · '+tp[i].toFixed(1)+'°F'+(dr[i]?' · drying':'')}}
+$('tip').textContent=rh[i]==null?'No reading':(hours>24?new Date(Date.now()-(n-1-i)*H.step*1000).toLocaleString([],{weekday:'short',hour:'numeric',minute:'2-digit'}):clock((n-1-i)*H.step))+' · '+rh[i].toFixed(0)+'% · dew '+dw[i].toFixed(1)+'° · '+tp[i].toFixed(1)+'°F'+(dr[i]==1?' · Dry':dr[i]==2?' · Cool':dr[i]==0?' · AC off':'')}}
 const chart=$('chart');const hov=e=>{const r=chart.getBoundingClientRect();draw((e.touches?e.touches[0].clientX:e.clientX)-r.left)};
 chart.addEventListener('mousemove',hov);chart.addEventListener('touchmove',hov,{passive:true});chart.addEventListener('touchstart',hov,{passive:true});chart.addEventListener('mouseleave',()=>{$('tip').textContent='';draw()});
 addEventListener('resize',()=>draw());
@@ -252,9 +272,27 @@ const lab=document.createElement('span');lab.textContent=i?t.toLocaleTimeString(
 const b=document.createElement('b');b.textContent=Math.round(h.temperature_2m[i])+'°';const p=document.createElement('span');p.className='p';p.textContent=h.precipitation_probability[i]>=10?h.precipitation_probability[i]+'%':'';el.append(lab,e,b,p);box.append(el)}
 const indoor=S&&S.room&&S.room.fresh?S.room.dew:null;$('wxcompare').textContent=indoor==null?'':c.dew_point_2m>indoor+2?'Outside air holds more moisture than inside ('+c.dew_point_2m.toFixed(0)+'° vs '+indoor.toFixed(0)+'° dew point) — keep windows and doors closed.':c.dew_point_2m<indoor-2?'Outside air is drier than inside ('+c.dew_point_2m.toFixed(0)+'° vs '+indoor.toFixed(0)+'° dew point) — airing out would help.':'Outside and inside moisture are about the same.'}
 async function refresh(){try{S=await (await fetch('/api/state',{cache:'no-store'})).json();render()}catch(e){$('hdrsub').textContent='Atom unreachable — retrying…'}}
-async function history(){try{H=await (await fetch('/api/history',{cache:'no-store'})).json();draw()}catch(e){}}
+async function history(){const days=hours>24?hours/24:1;try{
+if(REMOTE){if(days==1){if(H24){H=H24;draw()}return}H=(await dataReq('history',{days}))[0]}else H=await (await fetch('/api/history?days='+days,{cache:'no-store'})).json();draw()}catch(e){}}
+async function runtime(){try{RT=REMOTE?(await dataReq('runtime'))[0]:await (await fetch('/api/runtime',{cache:'no-store'})).json();renderEnergy()}catch(e){}}
+const KW={dry:.5,cool:1.0,other:.08,rate:.14};for(const k in KW){const v=parseFloat(ls('hc_k_'+k));if(v>=0)KW[k]=v;$('k_'+k).value=KW[k];$('k_'+k).oninput=()=>{const v=parseFloat($('k_'+k).value);if(v>=0){KW[k]=v;ls('hc_k_'+k,v);renderEnergy()}}}
+function hrs(h){return h==null?'—':h<1?Math.round(h*60)+' min':h.toFixed(1)+' h'}
+function kwh(d){return d.dry*KW.dry+d.cool*KW.cool+d.other*KW.other}
+function renderEnergy(){if(S&&S.runtime){const f=S.runtime.filter_h,due=S.runtime.filter_due_h,b=$('filterbar');b.classList.toggle('due',f>=due);b.firstElementChild.style.width=Math.min(100,f/due*100)+'%';
+$('filtertxt').textContent=f>=due?'Clean the filter: '+Math.round(f)+' h of running since last cleaned':Math.round(f)+' of '+due+' running hours until the filter needs cleaning'}
+if(!RT)return;const today=RT[0];if(!today){$('engnote').textContent='Starts logging once the clock is set';return}
+$('h_dry').textContent=hrs(today.dry);$('h_cool').textContent=hrs(today.cool);$('h_off').textContent=hrs(today.off);
+const money=k=>'$'+(k*KW.rate).toFixed(2);const t=kwh(today);$('e_today').textContent=t.toFixed(1)+' kWh';
+const full=RT.slice(1,8).filter(d=>d.logged>=20),avg=full.length?full.reduce((a,d)=>a+kwh(d),0)/full.length:null;
+$('e_avg').textContent=avg==null?'—':avg.toFixed(1)+' kWh';$('e_month').textContent=avg==null?'—':money(avg*30.4);
+$('engnote').textContent='Today '+money(t)+(avg==null?' · averages after a full day':'')}
+let filterArm=0;$('filterbtn').onclick=async()=>{if(Date.now()-filterArm>4000){filterArm=Date.now();$('filterbtn').textContent='Tap again to confirm';setTimeout(()=>$('filterbtn').textContent='Filter cleaned',4000);return}
+filterArm=0;$('filterbtn').textContent='Filter cleaned';await post('/api/filter_reset',{});refresh()};
+$('exportbtn').onclick=async()=>{if(!REMOTE){location.href='/api/export.csv';return}$('exportmsg').textContent='Collecting from the Atom…';
+try{const parts=await dataReq('export');const url=URL.createObjectURL(new Blob([parts.join('')],{type:'text/csv'}));const a=document.createElement('a');a.href=url;a.download='home-climate.csv';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),5000);$('exportmsg').textContent=''}
+catch(e){$('exportmsg').textContent=e.message}}
 $('r_save').onclick=async()=>{if(await post('/api/remote',{host:$('r_host').value.trim().replace(/^\w+:\/\//,'').replace(/[:\/].*$/,''),user:$('r_user').value.trim(),password:$('r_pass').value}))$('r_pass').value='';refresh()};
 $('p_save').onclick=async()=>{if(await post('/api/remote',{page_password:$('p_new').value}))$('p_new').value=''};
-if(REMOTE){remoteConnect();setInterval(hello,20000);document.addEventListener('visibilitychange',hello)}
-else{refresh();history();setInterval(refresh,3000);setInterval(history,60000);document.addEventListener('visibilitychange',()=>{if(!document.hidden){refresh();history()}})}
+if(REMOTE){remoteConnect();setInterval(hello,20000);setInterval(runtime,300000);document.addEventListener('visibilitychange',hello)}
+else{refresh();history();runtime();setInterval(refresh,3000);setInterval(history,60000);setInterval(runtime,300000);document.addEventListener('visibilitychange',()=>{if(!document.hidden){refresh();history()}})}
 </script></body></html>
