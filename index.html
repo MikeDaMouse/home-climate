@@ -121,8 +121,13 @@ footer{grid-column:1/-1;text-align:center;color:var(--muted);font-size:12px;marg
 <label>Night ends (hour, 0–23)<input id="s_night_end" type="number" min="0" max="23" inputmode="numeric"></label>
 <label>Never cool room below °F<input id="s_floor_f" type="number" step="0.5" inputmode="decimal"></label>
 <label>Away: dry above dew point °F<input id="s_away_dew_high" type="number" step="0.5" inputmode="decimal"></label>
-<label>Away: keep room under °F<input id="s_away_max" type="number" step="0.5" inputmode="decimal"></label></div>
-<p class="sub">Smart dry runs Dry when the air is humid or the room is over the limit, and turns the AC off when both are fine, so the wet coil is never fanned back into the room. If Dry can't hold the limit for 30 minutes (2°F over), Cool with low fan steps in until the room is back under. Every change lasts at least 10 minutes. Dew point is the moisture actually in the air: under 55°F feels crisp, 55–60°F comfortable, over 62°F sticky and mold-friendly.</p>
+<label>Away: keep room under °F<input id="s_away_max" type="number" step="0.5" inputmode="decimal"></label>
+<label>Turn off this many °F under the limit<input id="s_temp_gap" type="number" step="0.5" inputmode="decimal"></label>
+<label>Run at least (minutes)<input id="s_min_on" type="number" inputmode="numeric"></label>
+<label>Stay off at least (minutes)<input id="s_min_off" type="number" inputmode="numeric"></label>
+<label>Humidity must last (minutes)<input id="s_hold" type="number" inputmode="numeric"></label>
+<label>Cool backup after (minutes)<input id="s_boost" type="number" inputmode="numeric"></label></div>
+<p class="sub">Smart dry runs Dry when the air is humid or the room is over the limit, and turns the AC off when both are fine, so the wet coil is never fanned back into the room. If Dry can't hold the limit for 30 minutes (2°F over), Cool with low fan steps in until the room is back under. Each run and each rest lasts at least the minimum times below, so the AC never switches rapidly — even if the sensor drops out. Dew point is the moisture actually in the air: under 55°F feels crisp, 55–60°F comfortable, over 62°F sticky and mold-friendly.</p>
 <button class="btn" id="savebtn">Save targets</button></details></section>
 
 <section class="card s7 chartcard"><div class="row between" style="margin-bottom:10px"><h2 style="margin:0">Last <span id="rangelbl">24 hours</span></h2>
@@ -161,7 +166,7 @@ footer{grid-column:1/-1;text-align:center;color:var(--muted);font-size:12px;marg
 <button class="btn" id="l_go" style="width:100%;margin-top:16px">Connect</button><p class="sub" id="l_msg"></p></div></div>
 <script>
 const $=id=>document.getElementById(id);const MODES={1:'Heat',2:'Dry',3:'Cool',7:'Auto',8:'Fan'};const FANS={0:'Auto',1:'Quiet',2:'Low',3:'Medium',5:'High'};
-const FIELDS=['dew_high','dew_low','max_day','max_night','night_start','night_end','floor_f','away_dew_high','away_max'];
+const FIELDS=['dew_high','dew_low','max_day','max_night','night_start','night_end','floor_f','away_dew_high','away_max','temp_gap','min_on','min_off','hold','boost'];
 let S=null,H=null,hours=24,lock=0,pendingTemp=null,tempTimer=null,dirty=false;
 // Served by the Atom over http at home; opened over https from anywhere else, via the MQTT relay.
 const REMOTE=location.protocol==='https:'||location.search.includes('remote');if(REMOTE)document.body.classList.add('remote');
@@ -221,8 +226,8 @@ if(r.fresh&&r.dew!=null){const[f,c]=feel(r.dew);$('comfort').textContent=f;$('co
 const p=$('autopill');p.className='pill '+(au.enabled&&au.state!=='off'&&au.state!=='unknown'?'busy':au.enabled?'ok':'bad');p.lastElementChild.textContent=!au.enabled?'Paused':au.state==='dry'?'Drying':au.state==='cool'?'Cooling':au.away?'Away · AC off':'Smart dry · AC off';
 $('autosw').classList.toggle('on',au.enabled);setSeg('presence',au.away?1:0);
 $('autoico').textContent=!au.enabled?'⏸':au.state==='dry'?'💧':au.state==='cool'?'❄️':'✅';$('autoreason').textContent=au.enabled?au.reason:'Smart dry is off';
-$('autoplan').textContent=(au.away?'Away':au.night?'Night':'Day')+': keep under '+au.limit+'°F and dew point under '+au.start_dew+'°F (dries down to '+au.stop_dew+'°F). Never below '+au.floor+'°F. AC is '+({dry:'in Dry',cool:'in Cool (backup)',off:'off',unknown:'not yet set'}[au.state]||au.state)+'.';
-if(!dirty)for(const f of FIELDS)$('s_'+f).value={dew_high:au.dew_high,dew_low:au.dew_low,max_day:au.max_day,max_night:au.max_night,night_start:au.night_start,night_end:au.night_end,floor_f:au.floor,away_dew_high:au.away_dew_high,away_max:au.away_max}[f];
+$('autoplan').textContent=(au.away?'Away':au.night?'Night':'Day')+': on above '+au.limit+'°F or dew point '+au.start_dew+'°F; off at '+au.off_at+'°F and dew point '+au.stop_dew+'°F. Runs at least '+au.min_on+' min, rests at least '+au.min_off+' min. Never below '+au.floor+'°F. AC is '+({dry:'in Dry',cool:'in Cool (backup)',off:'off',unknown:'not yet set'}[au.state]||au.state)+'.';
+if(!dirty)for(const f of FIELDS)$('s_'+f).value={dew_high:au.dew_high,dew_low:au.dew_low,max_day:au.max_day,max_night:au.max_night,night_start:au.night_start,night_end:au.night_end,floor_f:au.floor,away_dew_high:au.away_dew_high,away_max:au.away_max,temp_gap:au.temp_gap,min_on:au.min_on,min_off:au.min_off,hold:au.hold,boost:au.boost}[f];
 renderEnergy();
 if(Date.now()>lock)renderAc();
 const fd=$('feed');fd.replaceChildren();for(const e of S.activity){const li=document.createElement('li'),i=document.createElement('span'),t=document.createElement('span'),w=document.createElement('span');
